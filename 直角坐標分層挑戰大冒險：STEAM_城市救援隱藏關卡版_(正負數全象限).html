@@ -1,0 +1,2256 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="bauhaus">
+  <title>直角坐標分層挑戰大冒險：STEAM 城市救援隱藏關卡版</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Noto+Sans+TC:wght@400;500;700&family=Space+Grotesk:wght@400..700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Page and surfaces (Bauhaus) */
+      --background: #f5f0e8;
+      --surface-container-low: #f2ede5;
+      --surface-container: #eee9e0;
+      --surface-container-high: #e8e3da;
+      --surface-canvas: #ffffff;
+
+      /* Ink */
+      --on-surface: #1a1a1a;
+      --on-surface-variant: #4a4a4a;
+
+      /* Lines */
+      --outline: #1a1a1a;
+      --outline-variant: #d0cbc3;
+
+      /* Accents */
+      --primary: #1a1a1a;
+      --on-primary: #ffffff;
+      --primary-container: #ffcc00;
+      --on-primary-container: #1a1a1a;
+      --secondary: #e63b2e;
+      --tertiary: #0055ff;
+      --on-tertiary: #ffffff;
+      --error: #cc0000;
+      --on-error: #ffffff;
+      --error-container: #fdeaea;
+
+      /* Semantic & domain tokens */
+      --positive: #0f7b3f;
+      --on-positive: #ffffff;
+      --positive-container: #dff5e8;
+      --warning: #a85000;
+      --warning-container: #fff0e0;
+      --guide-orange: #e05a00;
+      --zone-fill: #d9e6ff;
+
+      /* Data series */
+      --data-1: #e63b2e;
+      --data-2: #0055ff;
+      --data-3: #1a1a1a;
+      --data-4: #9a7300;
+      --data-context: #b5afa5;
+
+      /* Focus */
+      --focus: #0055ff;
+
+      /* Fonts (TC first for zh-HK, Space Grotesk / Inter for Latin & numerals) */
+      --font-headline: 'Noto Sans TC', 'Space Grotesk', sans-serif;
+      --font-body: 'Noto Sans TC', 'Inter', sans-serif;
+      --font-label: 'Noto Sans TC', 'Space Grotesk', sans-serif;
+
+      /* Type scale (Focused Tool) */
+      --display-size: clamp(1.65rem, 1.35rem + 1.3vw, 2.35rem);
+      --headline-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+      --subhead-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+      --body-size: clamp(0.95rem, 0.92rem + 0.15vw, 1.05rem);
+      --label-size: 0.8125rem;
+
+      /* Shape */
+      --rounded: 0.125rem;
+      --rounded-lg: 0.25rem;
+
+      /* Bauhaus effects */
+      --border-thick: 3px solid var(--outline);
+      --border-medium: 2px solid var(--outline);
+      --offset-shadow: 5px 5px 0 var(--outline);
+      --offset-shadow-sm: 3px 3px 0 var(--outline);
+      --rule-heavy: 6px solid var(--outline);
+
+      /* Spacing scale (4pt base) */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.55;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    header {
+      position: static !important;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+
+    .page-grid {
+      display: grid;
+      gap: var(--space-lg);
+      padding: var(--space-lg);
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    .page-grid * {
+      min-width: 0;
+    }
+
+    /* Header & Score HUD */
+    .hero-header {
+      border-top: var(--rule-heavy);
+      border-bottom: var(--border-thick);
+      padding-top: var(--space-md);
+      padding-bottom: var(--space-lg);
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
+      gap: var(--space-lg);
+      align-items: end;
+    }
+
+    .kicker-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+      margin-bottom: var(--space-sm);
+    }
+
+    .kicker-badge {
+      display: inline-block;
+      background: var(--primary);
+      color: var(--on-primary);
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--label-size);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--rounded);
+    }
+
+    .kicker-tag {
+      display: inline-block;
+      background: var(--tertiary);
+      color: var(--on-tertiary);
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--label-size);
+      padding: var(--space-xs) var(--space-sm);
+      border: var(--border-medium);
+      border-radius: var(--rounded);
+    }
+
+    .title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--display-size);
+      line-height: 1.15;
+      margin: 0;
+      color: var(--on-surface);
+    }
+
+    .title mark {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      padding-inline: var(--space-xs);
+      box-decoration-break: clone;
+    }
+
+    .subtitle {
+      margin: var(--space-sm) 0 0;
+      color: var(--on-surface-variant);
+      max-width: 62ch;
+    }
+
+    /* Score HUD Box */
+    .hud-box {
+      background: var(--surface-container-low);
+      border: var(--border-thick);
+      border-radius: var(--rounded);
+      box-shadow: var(--offset-shadow);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-md);
+    }
+
+    .hud-label {
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+
+    .hud-score {
+      font-family: 'Space Grotesk', var(--font-headline);
+      font-weight: 700;
+      font-size: 2rem;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      color: var(--on-surface);
+    }
+
+    .hud-score-unit {
+      font-size: var(--body-size);
+      color: var(--on-surface-variant);
+      margin-left: var(--space-xs);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 18px;
+      background: var(--surface-canvas);
+      border: var(--border-medium);
+      border-radius: var(--rounded);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--tertiary);
+      width: 0%;
+      transition: width var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+    }
+
+    .progress-fill.unlocked {
+      background: var(--primary-container);
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: var(--label-size);
+      font-weight: 700;
+      color: var(--on-surface-variant);
+      gap: var(--space-sm);
+    }
+
+    /* Stage Navigation Bar */
+    .stage-nav {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-md);
+      align-items: stretch;
+    }
+
+    .stage-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: var(--space-xs);
+      min-height: 64px;
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      border: var(--border-thick);
+      border-radius: var(--rounded);
+      box-shadow: var(--offset-shadow-sm);
+      cursor: pointer;
+      text-align: left;
+      transition: transform var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+    }
+
+    .stage-btn:hover:not(:disabled) {
+      transform: translate(-2px, -2px);
+      box-shadow: var(--offset-shadow);
+    }
+
+    .stage-btn:active:not(:disabled) {
+      transform: translate(3px, 3px);
+      box-shadow: none;
+    }
+
+    .stage-btn:focus-visible,
+    .btn:focus-visible,
+    .pill-q:focus-visible,
+    .coord-input:focus-visible,
+    .step-btn:focus-visible,
+    .toggle-btn:focus-visible,
+    .choice-btn:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .stage-btn.active {
+      background: var(--tertiary);
+      color: var(--on-tertiary);
+    }
+
+    .stage-btn.active .stage-sub {
+      color: var(--on-tertiary);
+    }
+
+    .stage-kicker {
+      font-size: var(--label-size);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .stage-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--subhead-size);
+      line-height: 1.25;
+    }
+
+    .stage-sub {
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+
+    /* Golden Hidden Mission Unlock Button */
+    .stage-btn.golden-locked {
+      background: var(--surface-container-high);
+      color: var(--on-surface-variant);
+      cursor: not-allowed;
+      box-shadow: none;
+      opacity: 0.85;
+    }
+
+    .stage-btn.golden-unlocked {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      box-shadow: var(--offset-shadow);
+    }
+
+    .stage-btn.golden-unlocked.active {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      outline: 3px solid var(--primary);
+      outline-offset: 3px;
+    }
+
+    /* Scaffolding Strip */
+    .scaffold-bar {
+      background: var(--surface-container);
+      border: var(--border-thick);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: var(--space-md);
+      align-items: center;
+    }
+
+    .scaffold-tag {
+      background: var(--primary);
+      color: var(--on-primary);
+      font-weight: 700;
+      font-size: var(--label-size);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--rounded);
+      white-space: nowrap;
+    }
+
+    .scaffold-steps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+      font-size: var(--body-size);
+      font-weight: 500;
+    }
+
+    .scaffold-step {
+      background: var(--surface-canvas);
+      border: var(--border-medium);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--rounded);
+    }
+
+    .scaffold-step strong {
+      color: var(--tertiary);
+    }
+
+    /* Main Workspace Grid */
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.95fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+
+    .block {
+      background: var(--surface-container-low);
+      border: var(--border-thick);
+      border-radius: var(--rounded);
+      box-shadow: var(--offset-shadow);
+      padding: var(--space-lg);
+    }
+
+    .section-open {
+      border-top: var(--space-sm) solid var(--tertiary);
+      padding-top: var(--space-md);
+    }
+
+    .section-open.accent-red {
+      border-top-color: var(--secondary);
+    }
+
+    .section-open.accent-gold {
+      border-top-color: var(--primary-container);
+    }
+
+    .radar-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-md);
+    }
+
+    .radar-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--headline-size);
+      margin: 0;
+    }
+
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      background: var(--surface-canvas);
+      color: var(--on-surface);
+      border: var(--border-medium);
+      border-radius: var(--rounded);
+      box-shadow: var(--offset-shadow-sm);
+      font-weight: 700;
+      font-size: var(--label-size);
+      cursor: pointer;
+    }
+
+    .toggle-btn.on {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+    }
+
+    .toggle-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: none;
+    }
+
+    .svg-frame {
+      background: var(--surface-canvas);
+      border: var(--border-thick);
+      border-radius: var(--rounded);
+      padding: var(--space-sm);
+      width: 100%;
+      min-height: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .radar-svg {
+      width: 100%;
+      max-width: 520px;
+      height: auto;
+      display: block;
+    }
+
+    .grid-hit {
+      fill: transparent;
+      cursor: pointer;
+    }
+
+    .grid-hit:hover,
+    .grid-hit:focus-visible {
+      fill: var(--zone-fill);
+      fill-opacity: 0.65;
+      stroke: var(--tertiary);
+      stroke-width: 2;
+      outline: none;
+    }
+
+    .legend-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      margin-top: var(--space-sm);
+      font-size: var(--label-size);
+      font-weight: 700;
+      color: var(--on-surface-variant);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border: var(--border-medium);
+      display: inline-block;
+    }
+
+    /* Right Control Panel */
+    .control-stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .q-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    .pill-q {
+      min-width: 44px;
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-sm);
+      background: var(--surface-canvas);
+      color: var(--on-surface);
+      border: var(--border-medium);
+      border-radius: var(--rounded);
+      font-weight: 700;
+      font-size: var(--label-size);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+    }
+
+    .pill-q.current {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      box-shadow: var(--offset-shadow-sm);
+    }
+
+    .pill-q.done {
+      background: var(--positive-container);
+      color: var(--positive);
+      border-color: var(--positive);
+    }
+
+    .pill-q.current.done {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      border-color: var(--outline);
+    }
+
+    .mission-card {
+      background: var(--surface-canvas);
+      border: var(--border-medium);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .mission-tag-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .mission-badge {
+      background: var(--primary);
+      color: var(--on-primary);
+      font-size: var(--label-size);
+      font-weight: 700;
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--rounded);
+    }
+
+    .mission-badge.steam {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      border: var(--border-medium);
+    }
+
+    .mission-points {
+      font-weight: 700;
+      font-size: var(--label-size);
+      color: var(--tertiary);
+    }
+
+    .mission-prompt {
+      margin: 0;
+      font-size: var(--subhead-size);
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .mission-desc {
+      margin: 0;
+      color: var(--on-surface-variant);
+      font-size: var(--body-size);
+    }
+
+    /* Inputs & Steppers (Touch-friendly) */
+    .coord-entry-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-md);
+      align-items: end;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .field-label {
+      font-weight: 700;
+      font-size: var(--label-size);
+      color: var(--on-surface);
+    }
+
+    .stepper-wrap {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) 44px;
+      border: var(--border-medium);
+      border-radius: var(--rounded);
+      background: var(--surface-container-low);
+      overflow: hidden;
+    }
+
+    .step-btn {
+      min-height: 46px;
+      min-width: 44px;
+      background: var(--surface-container-high);
+      color: var(--on-surface);
+      border: none;
+      font-weight: 700;
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+
+    .step-btn:hover {
+      background: var(--primary-container);
+    }
+
+    .coord-input {
+      width: 100%;
+      min-height: 46px;
+      border: none;
+      border-left: var(--border-medium);
+      border-right: var(--border-medium);
+      background: var(--surface-canvas);
+      color: var(--on-surface);
+      font-family: 'Space Grotesk', var(--font-body);
+      font-weight: 700;
+      font-size: 1.25rem;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      padding: var(--space-xs);
+    }
+
+    .single-input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-md);
+      align-items: end;
+    }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-sm);
+    }
+
+    .choice-btn {
+      min-height: 46px;
+      padding: var(--space-sm);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      border: var(--border-medium);
+      border-radius: var(--rounded);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .choice-btn.selected {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      box-shadow: var(--offset-shadow-sm);
+    }
+
+    /* Action Buttons */
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+
+    .btn {
+      min-height: 46px;
+      padding: var(--space-sm) var(--space-lg);
+      border: var(--border-thick);
+      border-radius: var(--rounded);
+      box-shadow: var(--offset-shadow-sm);
+      font-weight: 700;
+      font-size: var(--body-size);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      transition: transform var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+    }
+
+    .btn-primary {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary);
+      color: var(--on-primary);
+    }
+
+    .btn-secondary {
+      background: var(--surface-canvas);
+      color: var(--on-surface);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-container-high);
+    }
+
+    .btn-blue {
+      background: var(--tertiary);
+      color: var(--on-tertiary);
+    }
+
+    .btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: none;
+    }
+
+    /* Feedback Box */
+    .feedback-box {
+      border: var(--border-thick);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      background: var(--surface-container);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .feedback-box.ok {
+      background: var(--positive-container);
+      border-color: var(--positive);
+    }
+
+    .feedback-box.err {
+      background: var(--error-container);
+      border-color: var(--error);
+    }
+
+    .feedback-box.warn {
+      background: var(--warning-container);
+      border-color: var(--warning);
+    }
+
+    .feedback-title {
+      font-weight: 700;
+      font-size: var(--body-size);
+      margin: 0;
+    }
+
+    .feedback-box.ok .feedback-title { color: var(--positive); }
+    .feedback-box.err .feedback-title { color: var(--error); }
+    .feedback-box.warn .feedback-title { color: var(--warning); }
+
+    .feedback-detail {
+      margin: 0;
+      font-size: var(--body-size);
+      color: var(--on-surface);
+    }
+
+    /* Unlock Banner inside Mission 1/2 */
+    .unlock-banner {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      border: var(--border-thick);
+      border-radius: var(--rounded);
+      box-shadow: var(--offset-shadow-sm);
+      padding: var(--space-md);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .unlock-banner[hidden] {
+      display: none;
+    }
+
+    /* Keyboard directional pad for Task 2 / STEAM map */
+    .tap-hint-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-container);
+      border: var(--border-medium);
+      border-radius: var(--rounded);
+      font-size: var(--label-size);
+      font-weight: 700;
+    }
+
+    /* Footer */
+    .footer-bar {
+      border-top: var(--border-thick);
+      padding-top: var(--space-md);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-md);
+      color: var(--on-surface-variant);
+      font-size: var(--label-size);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 920px) {
+      .hero-header {
+        grid-template-columns: 1fr;
+      }
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+      .scaffold-bar {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-grid {
+        padding: var(--space-sm);
+        gap: var(--space-md);
+      }
+      .stage-nav {
+        grid-template-columns: 1fr;
+      }
+      .block {
+        padding: var(--space-md);
+      }
+      .coord-entry-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-grid">
+    <!-- Top Header & Score HUD -->
+    <header class="hero-header">
+      <div>
+        <div class="kicker-row">
+          <span class="kicker-badge">特工坐標訓練營</span>
+          <span class="kicker-tag">iPad 觸控 ✕ 電腦自適應</span>
+        </div>
+        <h1 class="title">直角坐標分層挑戰大冒險：<mark>STEAM 城市救援</mark></h1>
+        <p class="subtitle">由第一象限衛星雷達起步，進階至正負數全象限標點；累積滿 <strong>80 分</strong> 即時解鎖金色隱藏關卡，完成香港古蹟保育、無人機航線推算與生態工程測量任務。</p>
+      </div>
+
+      <section class="hud-box" aria-label="特工積分與解鎖進度">
+        <div class="hud-top">
+          <span class="hud-label">特工累積總分</span>
+          <div>
+            <span class="hud-score" id="hud-score">0</span>
+            <span class="hud-score-unit">/ 155 分</span>
+          </div>
+        </div>
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="80" aria-valuenow="0" id="unlock-progressbar">
+          <div class="progress-fill" id="unlock-progress-fill"></div>
+        </div>
+        <div class="progress-meta">
+          <span id="unlock-status-text">距離解鎖隱藏關卡：還差 80 分</span>
+          <span id="completed-count-text">已完成 0 / 14 關</span>
+        </div>
+      </section>
+    </header>
+
+    <!-- Mission Selector Bar -->
+    <nav class="stage-nav" aria-label="任務分層切換">
+      <button type="button" class="stage-btn active" id="tab-stage-1" onclick="switchStage(1)">
+        <span class="stage-kicker">任務一 · 基礎層（0 至 6）</span>
+        <span class="stage-title">看圖讀坐標</span>
+        <span class="stage-sub" id="tab-sub-1">第一象限雷達定位 · 0 / 5 題</span>
+      </button>
+
+      <button type="button" class="stage-btn" id="tab-stage-2" onclick="switchStage(2)">
+        <span class="stage-kicker">任務二 · 進階層（-5 至 +5）</span>
+        <span class="stage-title">全象限平面標點</span>
+        <span class="stage-sub" id="tab-sub-2">智慧防呆診斷 · 0 / 6 題</span>
+      </button>
+
+      <button type="button" class="stage-btn golden-locked" id="tab-stage-3" onclick="switchStage(3)" aria-disabled="true">
+        <span class="stage-kicker" id="tab-kicker-3">🔒 滿 80 分自動解鎖</span>
+        <span class="stage-title">隱藏關卡：STEAM 城市救援</span>
+        <span class="stage-sub" id="tab-sub-3">跨學科正負數挑戰 · 0 / 3 題</span>
+      </button>
+    </nav>
+
+    <!-- Scaffolding Formula Strip -->
+    <aside class="scaffold-bar" aria-label="特工定位思考鷹架口訣">
+      <span class="scaffold-tag">特工定位口訣</span>
+      <div class="scaffold-steps">
+        <span class="scaffold-step">① 從原點 <strong>O(0, 0)</strong> 出發</span>
+        <span class="scaffold-step">② 先看地面平平走（<strong>X 軸橫看</strong>：右正＋ / 左負－）</span>
+        <span class="scaffold-step">③ 再乘電梯直直爬（<strong>Y 軸直看</strong>：上正＋ / 下負－）</span>
+        <span class="scaffold-step">④ 寫作 <strong>( x , y )</strong></span>
+      </div>
+      <button type="button" class="toggle-btn on" id="btn-toggle-scaffold" onclick="toggleOrangeGuide()">
+        橘色投影輔助虛線：開啟
+      </button>
+    </aside>
+
+    <!-- Golden Unlock Banner -->
+    <div class="unlock-banner" id="golden-unlock-banner" hidden>
+      <div>
+        <strong>恭喜特工累積滿 80 分！</strong>
+        <span>「STEAM 智慧城市救援任務」金色隱藏關卡已經自動解鎖。</span>
+      </div>
+      <button type="button" class="btn btn-blue" onclick="switchStage(3)">
+        立即啟動金色隱藏關卡
+      </button>
+    </div>
+
+    <!-- Main Interactive Workspace -->
+    <main class="workspace">
+      <!-- Left Column: Interactive Coordinate Canvas -->
+      <section class="block section-open" id="canvas-panel">
+        <div class="radar-header">
+          <h2 class="radar-title" id="radar-heading">衛星雷達平面圖（第一象限）</h2>
+          <span class="mission-badge" id="radar-range-badge">X: 0..6 ｜ Y: 0..6</span>
+        </div>
+
+        <div class="svg-frame" id="svg-frame">
+          <svg id="coord-svg" class="radar-svg" viewBox="0 0 460 460" role="img" aria-label="直角坐標互動平面圖"></svg>
+        </div>
+
+        <div class="legend-strip" id="legend-strip">
+          <span class="legend-item"><span class="legend-swatch" style="background: var(--tertiary);"></span>目標／正確位置</span>
+          <span class="legend-item"><span class="legend-swatch" style="background: var(--guide-orange);"></span>橘色投影輔助虛線（先橫後直）</span>
+          <span class="legend-item"><span class="legend-swatch" style="background: var(--error);"></span>誤點診斷位置</span>
+        </div>
+      </section>
+
+      <!-- Right Column: Question Selector, Controls & Smart Feedback -->
+      <section class="block control-stack" aria-label="任務操作與診斷回饋">
+        <div>
+          <span class="hud-label" id="q-list-label">任務一題目導航</span>
+          <div class="q-pills" id="q-pills" style="margin-top: var(--space-xs);"></div>
+        </div>
+
+        <div class="mission-card" id="mission-card">
+          <div class="mission-tag-row">
+            <span class="mission-badge" id="q-badge">第 1 題</span>
+            <span class="mission-points" id="q-points-badge">滿分 +10 分</span>
+          </div>
+
+          <h3 class="mission-prompt" id="q-prompt">載入題目中…</h3>
+          <p class="mission-desc" id="q-desc"></p>
+
+          <!-- Dynamic Input Area -->
+          <div id="input-area"></div>
+
+          <div class="action-row" id="action-row">
+            <button type="button" class="btn btn-primary" id="btn-submit" onclick="submitCurrentAnswer()">提交坐標答案</button>
+            <button type="button" class="btn btn-secondary" id="btn-next" onclick="goNextQuestion()">下一題</button>
+          </div>
+        </div>
+
+        <!-- Smart Diagnostic Feedback Panel -->
+        <div class="feedback-box" id="feedback-box" aria-live="polite">
+          <p class="feedback-title" id="feedback-title">等待特工行動</p>
+          <p class="feedback-detail" id="feedback-detail">觀察雷達上的目標位置，跟隨「先橫走 X 軸、再直爬 Y 軸」的口訣作答。</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer with Source Attribution & Safe Inline Reset -->
+    <footer class="footer-bar">
+      <span>資料及教學設計參考：直角坐標系學習資料冊、GPS 坐標與生活定位工作紙、分層提問鷹架設計</span>
+      <button type="button" class="btn btn-secondary" id="btn-reset-all" onclick="handleResetProgress(this)">重設挑戰進度</button>
+    </footer>
+  </div>
+
+  <api-shim></api-shim>
+  <script>
+    /* ==========================================================
+       Data Definitions (Backtick template literals for safety)
+       ========================================================== */
+    const STAGE_1_QUESTIONS = [
+      {
+        id: `s1_q1`,
+        code: `A`,
+        name: `巡邏無人機 A`,
+        x: 3,
+        y: 4,
+        points: 10,
+        prompt: `請讀出「巡邏無人機 A」在雷達圖上的坐標 (x, y)。`,
+        desc: `先沿水平 X 軸向右走，再沿垂直 Y 軸向上爬，看看橘色虛線指向哪兩個數字。`
+      },
+      {
+        id: `s1_q2`,
+        code: `B`,
+        name: `高山氣象站 B`,
+        x: 1,
+        y: 5,
+        points: 10,
+        prompt: `請讀出「高山氣象站 B」的坐標 (x, y)。`,
+        desc: `提示：氣象站位於高處，先確定水平走了多少格，再看垂直高度。`
+      },
+      {
+        id: `s1_q3`,
+        code: `C`,
+        name: `地面指揮中心 C`,
+        x: 5,
+        y: 2,
+        points: 10,
+        prompt: `請讀出「地面指揮中心 C」的坐標 (x, y)。`,
+        desc: `小心不要把橫坐標和縱坐標調轉寫反！`
+      },
+      {
+        id: `s1_q4`,
+        code: `D`,
+        name: `信號燈 D`,
+        x: 4,
+        y: 0,
+        points: 10,
+        prompt: `請讀出「信號燈 D」的坐標 (x, y)。`,
+        desc: `留意目標正停在水平 X 軸上，它沒有向上爬升，所以 Y 坐標是多少？`
+      },
+      {
+        id: `s1_q5`,
+        code: `E`,
+        name: `燈塔 E`,
+        x: 0,
+        y: 3,
+        points: 10,
+        prompt: `請讀出「燈塔 E」的坐標 (x, y)。`,
+        desc: `留意目標正停在鉛垂 Y 軸上，左右沒有橫移，所以 X 坐標是多少？`
+      }
+    ];
+
+    const STAGE_2_QUESTIONS = [
+      {
+        id: `s2_q1`,
+        code: `P`,
+        name: `緊急補給包 P`,
+        x: -3,
+        y: 4,
+        points: 10,
+        prompt: `請在全象限坐標平面點擊標出「緊急補給包 P (-3, 4)」。`,
+        desc: `X = -3（從原點向左走 3 格），Y = +4（再向上爬 4 格）。請直接點擊對應的網格十字交會點！`
+      },
+      {
+        id: `s2_q2`,
+        code: `Q`,
+        name: `搜救直升機 Q`,
+        x: -4,
+        y: -3,
+        points: 10,
+        prompt: `請點擊標出「搜救直升機 Q (-4, -3)」。`,
+        desc: `X 與 Y 都是負數：先從原點向左走 4 格，再向下移動 3 格（第 III 象限）。`
+      },
+      {
+        id: `s2_q3`,
+        code: `R`,
+        name: `海上信標 R`,
+        x: 2,
+        y: -4,
+        points: 10,
+        prompt: `請點擊標出「海上信標 R (2, -4)」。`,
+        desc: `X 為正（向右 2 格），Y 為負（向下 4 格），位置處於第 IV 象限海域。`
+      },
+      {
+        id: `s2_q4`,
+        code: `S`,
+        name: `山脈中繼站 S`,
+        x: -5,
+        y: 0,
+        points: 10,
+        prompt: `請點擊標出「山脈中繼站 S (-5, 0)」。`,
+        desc: `Y 坐標是 0，代表點 S 停留在 X 軸上！請從原點向左走到 -5。`
+      },
+      {
+        id: `s2_q5`,
+        code: `T`,
+        name: `氣象氣球 T`,
+        x: 0,
+        y: -3,
+        points: 10,
+        prompt: `請點擊標出「氣象氣球 T (0, -3)」。`,
+        desc: `X 坐標是 0，代表不左不右，沿 Y 軸向下移動 3 格。`
+      },
+      {
+        id: `s2_q6`,
+        code: `U`,
+        name: `支援營地 U`,
+        x: 4,
+        y: 3,
+        points: 10,
+        prompt: `請點擊標出「支援營地 U (4, 3)」。`,
+        desc: `先向右走 4 格，再向上爬 3 格，完成全象限標點訓練！`
+      }
+    ];
+
+    const STAGE_3_QUESTIONS = [
+      {
+        id: `s3_q1`,
+        type: `heritage_click`,
+        tag: `地理與歷史保育`,
+        title: `香港古蹟跨象限精準定位`,
+        points: 15,
+        targetX: -3,
+        targetY: 2,
+        quadrant: `II`,
+        refPoint: { label: `九龍鐘樓`, x: 2, y: 3 },
+        prompt: `以維港中心為原點 O(0, 0)，請在平面圖點擊標出香港法定古蹟「中環大館」的位置 (-3, 2)，並選出所屬象限。`,
+        desc: `九龍「前九廣鐵路鐘樓」已標示於第 I 象限 (2, 3)。請為港島「大館」(-3, 2) 精準定位！`
+      },
+      {
+        id: `s3_q2`,
+        type: `drone_shift`,
+        tag: `科學與航線推算`,
+        title: `搜救無人機跨象限平移計算`,
+        points: 15,
+        start: { label: `起點 A`, x: -2, y: -1 },
+        end: { label: `終點 B`, x: 3, y: 2 },
+        dx: 5,
+        dy: 3,
+        prompt: `搜救無人機由起點 A(-2, -1) 直飛往傷者信標 B(3, 2)，請計算橫向 (X 軸) 及縱向 (Y 軸) 各需移動多少格？`,
+        desc: `小心跨越原點 O(0, 0) 的正負數跨度！從 -2 向右飛到 +3，一共跨越了多少格？`
+      },
+      {
+        id: `s3_q3`,
+        type: `eco_rect`,
+        tag: `幾何與工程測量`,
+        title: `跨正負軸生態保護區長寬與面積`,
+        points: 15,
+        rect: { x1: -3, x2: 4, y1: -2, y2: 2 },
+        width: 7,
+        height: 4,
+        area: 28,
+        prompt: `長方形濕地保護區四個頂點為 P(-3, 2)、Q(4, 2)、R(4, -2)、S(-3, -2)，請計算保護區的東西長度、南北闊度與總面積。`,
+        desc: `長方形橫跨 X 軸與 Y 軸！先計算 X 軸由 -3 到 4 的長度、Y 軸由 -2 到 2 的闊度，再求面積。`
+      }
+    ];
+
+    const UNLOCK_THRESHOLD = 80;
+
+    /* ==========================================================
+       Application State
+       ========================================================== */
+    const appState = {
+      activeStage: 1,
+      s1Index: 0,
+      s2Index: 0,
+      s3Index: 0,
+      showOrangeGuide: true,
+      bannerDismissed: false,
+      /* Map of questionId -> { solved: boolean, attempts: number, earned: number, lastWrong: {x,y}|null } */
+      progress: {},
+      /* Temp selection for Stage 3 Q1 quadrant */
+      s3q1Clicked: null,
+      s3q1Quadrant: ``
+    };
+
+    /* ==========================================================
+       Persistence Helpers (notebookAppApi)
+       ========================================================== */
+    async function saveAppState() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+        try {
+          await window.notebookAppApi.setAppState({
+            activeStage: appState.activeStage,
+            s1Index: appState.s1Index,
+            s2Index: appState.s2Index,
+            s3Index: appState.s3Index,
+            showOrangeGuide: appState.showOrangeGuide,
+            progress: appState.progress,
+            s3q1Clicked: appState.s3q1Clicked,
+            s3q1Quadrant: appState.s3q1Quadrant
+          });
+        } catch (err) {
+          /* Ignore sandbox serialization warnings gracefully */
+        }
+      }
+    }
+
+    async function loadAppState() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+        try {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved && typeof saved === `object`) {
+            if (typeof saved.activeStage === `number`) appState.activeStage = saved.activeStage;
+            if (typeof saved.s1Index === `number`) appState.s1Index = saved.s1Index;
+            if (typeof saved.s2Index === `number`) appState.s2Index = saved.s2Index;
+            if (typeof saved.s3Index === `number`) appState.s3Index = saved.s3Index;
+            if (typeof saved.showOrangeGuide === `boolean`) appState.showOrangeGuide = saved.showOrangeGuide;
+            if (saved.progress && typeof saved.progress === `object`) appState.progress = saved.progress;
+            if (saved.s3q1Clicked) appState.s3q1Clicked = saved.s3q1Clicked;
+            if (typeof saved.s3q1Quadrant === `string`) appState.s3q1Quadrant = saved.s3q1Quadrant;
+          }
+        } catch (err) {
+          /* Start fresh if state load fails */
+        }
+      }
+    }
+
+    /* ==========================================================
+       Score & Unlock Computation
+       ========================================================== */
+    function getTotalScore() {
+      let total = 0;
+      const keys = Object.keys(appState.progress);
+      for (let i = 0; i < keys.length; i++) {
+        const entry = appState.progress[keys[i]];
+        if (entry && entry.solved && typeof entry.earned === `number`) {
+          total += entry.earned;
+        }
+      }
+      return total;
+    }
+
+    function countSolved(list) {
+      let c = 0;
+      for (let i = 0; i < list.length; i++) {
+        const p = appState.progress[list[i].id];
+        if (p && p.solved) c++;
+      }
+      return c;
+    }
+
+    function isHiddenUnlocked() {
+      return getTotalScore() >= UNLOCK_THRESHOLD;
+    }
+
+    /* ==========================================================
+       UI Rendering
+       ========================================================== */
+    function renderAll() {
+      const totalScore = getTotalScore();
+      const unlocked = isHiddenUnlocked();
+
+      /* Ensure activeStage 3 cannot remain active if locked */
+      if (appState.activeStage === 3 && !unlocked) {
+        appState.activeStage = 1;
+      }
+
+      /* HUD */
+      const hudScoreEl = document.getElementById(`hud-score`);
+      if (hudScoreEl) hudScoreEl.textContent = String(totalScore);
+
+      const pct = Math.min(100, Math.round((totalScore / UNLOCK_THRESHOLD) * 100));
+      const fillEl = document.getElementById(`unlock-progress-fill`);
+      if (fillEl) {
+        fillEl.style.width = `${pct}%`;
+        if (unlocked) {
+          fillEl.classList.add(`unlocked`);
+        } else {
+          fillEl.classList.remove(`unlocked`);
+        }
+      }
+
+      const barEl = document.getElementById(`unlock-progressbar`);
+      if (barEl) {
+        barEl.setAttribute(`aria-valuenow`, String(Math.min(UNLOCK_THRESHOLD, totalScore)));
+      }
+
+      const unlockTextEl = document.getElementById(`unlock-status-text`);
+      if (unlockTextEl) {
+        if (unlocked) {
+          unlockTextEl.textContent = `金色隱藏關卡已解鎖！`;
+        } else {
+          unlockTextEl.textContent = `距離解鎖隱藏關卡：還差 ${UNLOCK_THRESHOLD - totalScore} 分`;
+        }
+      }
+
+      const s1Done = countSolved(STAGE_1_QUESTIONS);
+      const s2Done = countSolved(STAGE_2_QUESTIONS);
+      const s3Done = countSolved(STAGE_3_QUESTIONS);
+      const totalDone = s1Done + s2Done + s3Done;
+      const totalAll = STAGE_1_QUESTIONS.length + STAGE_2_QUESTIONS.length + STAGE_3_QUESTIONS.length;
+
+      const countEl = document.getElementById(`completed-count-text`);
+      if (countEl) countEl.textContent = `已完成 ${totalDone} / ${totalAll} 關`;
+
+      /* Tabs */
+      const tab1 = document.getElementById(`tab-stage-1`);
+      const tab2 = document.getElementById(`tab-stage-2`);
+      const tab3 = document.getElementById(`tab-stage-3`);
+      if (tab1) tab1.classList.toggle(`active`, appState.activeStage === 1);
+      if (tab2) tab2.classList.toggle(`active`, appState.activeStage === 2);
+
+      const sub1 = document.getElementById(`tab-sub-1`);
+      const sub2 = document.getElementById(`tab-sub-2`);
+      const sub3 = document.getElementById(`tab-sub-3`);
+      if (sub1) sub1.textContent = `第一象限雷達定位 · ${s1Done} / ${STAGE_1_QUESTIONS.length} 題`;
+      if (sub2) sub2.textContent = `智慧防呆診斷 · ${s2Done} / ${STAGE_2_QUESTIONS.length} 題`;
+      if (sub3) sub3.textContent = `跨學科正負數挑戰 · ${s3Done} / ${STAGE_3_QUESTIONS.length} 題`;
+
+      const kicker3 = document.getElementById(`tab-kicker-3`);
+      if (tab3) {
+        if (unlocked) {
+          tab3.classList.remove(`golden-locked`);
+          tab3.classList.add(`golden-unlocked`);
+          tab3.setAttribute(`aria-disabled`, `false`);
+          tab3.classList.toggle(`active`, appState.activeStage === 3);
+          if (kicker3) kicker3.textContent = `★ 金色通關按鈕已解鎖！`;
+        } else {
+          tab3.classList.add(`golden-locked`);
+          tab3.classList.remove(`golden-unlocked`, `active`);
+          tab3.setAttribute(`aria-disabled`, `true`);
+          if (kicker3) kicker3.textContent = `🔒 滿 80 分自動解鎖`;
+        }
+      }
+
+      /* Golden Unlock Banner */
+      const bannerEl = document.getElementById(`golden-unlock-banner`);
+      if (bannerEl) {
+        bannerEl.hidden = !(unlocked && appState.activeStage !== 3);
+      }
+
+      /* Orange guide toggle */
+      const guideBtn = document.getElementById(`btn-toggle-scaffold`);
+      if (guideBtn) {
+        guideBtn.classList.toggle(`on`, appState.showOrangeGuide);
+        guideBtn.textContent = appState.showOrangeGuide
+          ? `橘色投影輔助虛線：開啟`
+          : `橘色投影輔助虛線：關閉`;
+      }
+
+      /* Render Active Stage */
+      renderQuestionPills();
+      renderStagePanel();
+      renderCoordinateSVG();
+    }
+
+    function renderQuestionPills() {
+      const container = document.getElementById(`q-pills`);
+      const labelEl = document.getElementById(`q-list-label`);
+      if (!container) return;
+
+      let list = STAGE_1_QUESTIONS;
+      let curIdx = appState.s1Index;
+      let labelText = `任務一題目導航`;
+      if (appState.activeStage === 2) {
+        list = STAGE_2_QUESTIONS;
+        curIdx = appState.s2Index;
+        labelText = `任務二題目導航`;
+      } else if (appState.activeStage === 3) {
+        list = STAGE_3_QUESTIONS;
+        curIdx = appState.s3Index;
+        labelText = `STEAM 隱藏關卡導航`;
+      }
+      if (labelEl) labelEl.textContent = labelText;
+
+      let html = ``;
+      for (let i = 0; i < list.length; i++) {
+        const q = list[i];
+        const solved = !!(appState.progress[q.id] && appState.progress[q.id].solved);
+        const cls = `pill-q${i === curIdx ? ` current` : ``}${solved ? ` done` : ``}`;
+        const mark = solved ? ` ✓` : ``;
+        const text = appState.activeStage === 3 ? `關卡 ${i + 1}${mark}` : `${i + 1}${mark}`;
+        html += `<button type="button" class="${cls}" onclick="selectQuestion(${i})">${text}</button>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function renderStagePanel() {
+      const canvasPanel = document.getElementById(`canvas-panel`);
+      const headingEl = document.getElementById(`radar-heading`);
+      const rangeEl = document.getElementById(`radar-range-badge`);
+      const qBadge = document.getElementById(`q-badge`);
+      const qPoints = document.getElementById(`q-points-badge`);
+      const qPrompt = document.getElementById(`q-prompt`);
+      const qDesc = document.getElementById(`q-desc`);
+      const inputArea = document.getElementById(`input-area`);
+      const btnSubmit = document.getElementById(`btn-submit`);
+
+      if (!canvasPanel || !inputArea) return;
+
+      canvasPanel.classList.remove(`accent-red`, `accent-gold`);
+
+      if (appState.activeStage === 1) {
+        const q = STAGE_1_QUESTIONS[appState.s1Index];
+        const entry = appState.progress[q.id] || {};
+        if (headingEl) headingEl.textContent = `衛星雷達平面圖（第一象限）`;
+        if (rangeEl) rangeEl.textContent = `X: 0..6 ｜ Y: 0..6`;
+        if (qBadge) {
+          qBadge.className = `mission-badge`;
+          qBadge.textContent = `目標 ${q.code} · 第 ${appState.s1Index + 1} 題`;
+        }
+        if (qPoints) qPoints.textContent = entry.solved ? `已得分 +${entry.earned}` : `滿分 +${q.points} 分`;
+        if (qPrompt) qPrompt.textContent = q.prompt;
+        if (qDesc) qDesc.textContent = q.desc;
+
+        const initX = entry.solved ? String(q.x) : ``;
+        const initY = entry.solved ? String(q.y) : ``;
+
+        inputArea.innerHTML = `
+          <div class="coord-entry-row">
+            <div class="field-group">
+              <label class="field-label" for="input-s1-x">橫坐標 X（先橫走）</label>
+              <div class="stepper-wrap">
+                <button type="button" class="step-btn" onclick="stepInput('input-s1-x', -1, 0, 6)" aria-label="X 減 1">−</button>
+                <input type="number" id="input-s1-x" class="coord-input" min="0" max="6" step="1" inputmode="numeric" value="${initX}" placeholder="0–6" onkeydown="if(event.key==='Enter'){submitCurrentAnswer();}">
+                <button type="button" class="step-btn" onclick="stepInput('input-s1-x', 1, 0, 6)" aria-label="X 加 1">+</button>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="input-s1-y">縱坐標 Y（再直爬）</label>
+              <div class="stepper-wrap">
+                <button type="button" class="step-btn" onclick="stepInput('input-s1-y', -1, 0, 6)" aria-label="Y 減 1">−</button>
+                <input type="number" id="input-s1-y" class="coord-input" min="0" max="6" step="1" inputmode="numeric" value="${initY}" placeholder="0–6" onkeydown="if(event.key==='Enter'){submitCurrentAnswer();}">
+                <button type="button" class="step-btn" onclick="stepInput('input-s1-y', 1, 0, 6)" aria-label="Y 加 1">+</button>
+              </div>
+            </div>
+          </div>
+        `;
+        if (btnSubmit) {
+          btnSubmit.style.display = `inline-flex`;
+          btnSubmit.textContent = entry.solved ? `再次檢查答案` : `提交坐標答案`;
+        }
+      } else if (appState.activeStage === 2) {
+        canvasPanel.classList.add(`accent-red`);
+        const q = STAGE_2_QUESTIONS[appState.s2Index];
+        const entry = appState.progress[q.id] || {};
+        if (headingEl) headingEl.textContent = `全象限坐標定位網格（-5 至 +5）`;
+        if (rangeEl) rangeEl.textContent = `X: -5..+5 ｜ Y: -5..+5`;
+        if (qBadge) {
+          qBadge.className = `mission-badge`;
+          qBadge.textContent = `標點 ${q.code} · 第 ${appState.s2Index + 1} 題`;
+        }
+        if (qPoints) qPoints.textContent = entry.solved ? `已得分 +${entry.earned}` : `滿分 +${q.points} 分`;
+        if (qPrompt) qPrompt.textContent = q.prompt;
+        if (qDesc) qDesc.textContent = q.desc;
+
+        inputArea.innerHTML = `
+          <div class="tap-hint-bar">
+            <span>👆 請直接在左側網格「十字交會點」點擊／觸控標點</span>
+            <span>原點 O(0, 0) 在中心</span>
+          </div>
+        `;
+        if (btnSubmit) btnSubmit.style.display = `none`;
+      } else {
+        canvasPanel.classList.add(`accent-gold`);
+        const q = STAGE_3_QUESTIONS[appState.s3Index];
+        const entry = appState.progress[q.id] || {};
+        if (headingEl) headingEl.textContent = `STEAM 智慧城市救援戰術圖（-5 至 +5）`;
+        if (rangeEl) rangeEl.textContent = `跨學科 ✕ 正負數實戰`;
+        if (qBadge) {
+          qBadge.className = `mission-badge steam`;
+          qBadge.textContent = `${q.tag} · 關卡 ${appState.s3Index + 1}`;
+        }
+        if (qPoints) qPoints.textContent = entry.solved ? `已得分 +${entry.earned}` : `滿分 +${q.points} 分`;
+        if (qPrompt) qPrompt.textContent = q.prompt;
+        if (qDesc) qDesc.textContent = q.desc;
+
+        if (q.type === `heritage_click`) {
+          const clickedTxt = appState.s3q1Clicked
+            ? `已於地圖標記：(${appState.s3q1Clicked.x}, ${appState.s3q1Clicked.y})`
+            : `尚未在地圖點擊大館位置 (-3, 2)`;
+          const selQ = entry.solved ? q.quadrant : appState.s3q1Quadrant;
+          inputArea.innerHTML = `
+            <div class="tap-hint-bar">
+              <span id="s3-map-pick-status">${clickedTxt}</span>
+              <span>參考：鐘樓 (2, 3)</span>
+            </div>
+            <div class="field-group" style="margin-top: var(--space-sm);">
+              <span class="field-label">第二步：中環大館 (-3, 2) 屬於第幾象限？</span>
+              <div class="choice-row">
+                <button type="button" class="choice-btn${selQ === `I` ? ` selected` : ``}" onclick="selectQuadrant('I')">第 I 象限 (+, +)</button>
+                <button type="button" class="choice-btn${selQ === `II` ? ` selected` : ``}" onclick="selectQuadrant('II')">第 II 象限 (−, +)</button>
+                <button type="button" class="choice-btn${selQ === `III` ? ` selected` : ``}" onclick="selectQuadrant('III')">第 III 象限 (−, −)</button>
+                <button type="button" class="choice-btn${selQ === `IV` ? ` selected` : ``}" onclick="selectQuadrant('IV')">第 IV 象限 (+, −)</button>
+              </div>
+            </div>
+          `;
+          if (btnSubmit) {
+            btnSubmit.style.display = `inline-flex`;
+            btnSubmit.textContent = `核對古蹟定位與象限`;
+          }
+        } else if (q.type === `drone_shift`) {
+          const vDx = entry.solved ? String(q.dx) : ``;
+          const vDy = entry.solved ? String(q.dy) : ``;
+          inputArea.innerHTML = `
+            <div class="coord-entry-row">
+              <div class="field-group">
+                <label class="field-label" for="input-s3-dx">X 軸向右位移（格數）</label>
+                <div class="stepper-wrap">
+                  <button type="button" class="step-btn" onclick="stepInput('input-s3-dx', -1, -10, 10)" aria-label="X 位移減 1">−</button>
+                  <input type="number" id="input-s3-dx" class="coord-input" min="-10" max="10" step="1" inputmode="numeric" value="${vDx}" placeholder="格數" onkeydown="if(event.key==='Enter'){submitCurrentAnswer();}">
+                  <button type="button" class="step-btn" onclick="stepInput('input-s3-dx', 1, -10, 10)" aria-label="X 位移加 1">+</button>
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="input-s3-dy">Y 軸向上位移（格數）</label>
+                <div class="stepper-wrap">
+                  <button type="button" class="step-btn" onclick="stepInput('input-s3-dy', -1, -10, 10)" aria-label="Y 位移減 1">−</button>
+                  <input type="number" id="input-s3-dy" class="coord-input" min="-10" max="10" step="1" inputmode="numeric" value="${vDy}" placeholder="格數" onkeydown="if(event.key==='Enter'){submitCurrentAnswer();}">
+                  <button type="button" class="step-btn" onclick="stepInput('input-s3-dy', 1, -10, 10)" aria-label="Y 位移加 1">+</button>
+                </div>
+              </div>
+            </div>
+          `;
+          if (btnSubmit) {
+            btnSubmit.style.display = `inline-flex`;
+            btnSubmit.textContent = `驗證無人機航線推算`;
+          }
+        } else if (q.type === `eco_rect`) {
+          const vW = entry.solved ? String(q.width) : ``;
+          const vH = entry.solved ? String(q.height) : ``;
+          const vA = entry.solved ? String(q.area) : ``;
+          inputArea.innerHTML = `
+            <div class="single-input-grid">
+              <div class="field-group">
+                <label class="field-label" for="input-s3-w">東西橫向長度（單位）</label>
+                <input type="number" id="input-s3-w" class="coord-input" style="border: var(--border-medium);" min="0" max="20" step="1" inputmode="numeric" value="${vW}" placeholder="由 -3 至 4" onkeydown="if(event.key==='Enter'){submitCurrentAnswer();}">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="input-s3-h">南北縱向闊度（單位）</label>
+                <input type="number" id="input-s3-h" class="coord-input" style="border: var(--border-medium);" min="0" max="20" step="1" inputmode="numeric" value="${vH}" placeholder="由 -2 至 2" onkeydown="if(event.key==='Enter'){submitCurrentAnswer();}">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="input-s3-a">保護區總面積（平方單位）</label>
+                <input type="number" id="input-s3-a" class="coord-input" style="border: var(--border-medium);" min="0" max="200" step="1" inputmode="numeric" value="${vA}" placeholder="長 × 闊" onkeydown="if(event.key==='Enter'){submitCurrentAnswer();}">
+              </div>
+            </div>
+          `;
+          if (btnSubmit) {
+            btnSubmit.style.display = `inline-flex`;
+            btnSubmit.textContent = `提交工程測量報告`;
+          }
+        }
+      }
+    }
+
+    /* ==========================================================
+       SVG Rendering (Strict Token Colors, Zero Inline Hex)
+       ========================================================== */
+    function renderCoordinateSVG() {
+      const svg = document.getElementById(`coord-svg`);
+      if (!svg) return;
+
+      if (appState.activeStage === 1) {
+        renderFirstQuadrantSVG(svg);
+      } else {
+        renderFullQuadrantSVG(svg);
+      }
+    }
+
+    function renderFirstQuadrantSVG(svg) {
+      svg.setAttribute(`viewBox`, `0 0 460 460`);
+      const ox = 60;
+      const oy = 400;
+      const step = 60;
+      const max = 6;
+      const q = STAGE_1_QUESTIONS[appState.s1Index];
+      const entry = appState.progress[q.id] || {};
+
+      let out = `
+        <defs>
+          <marker id="arrow-black" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--outline)" />
+          </marker>
+          <marker id="arrow-orange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--guide-orange)" />
+          </marker>
+        </defs>
+      `;
+
+      /* Gridlines */
+      for (let i = 0; i <= max; i++) {
+        const gx = ox + i * step;
+        const gy = oy - i * step;
+        if (i > 0) {
+          out += `<line x1="${gx}" y1="${oy}" x2="${gx}" y2="${oy - max * step}" stroke="var(--outline-variant)" stroke-width="1.5" />`;
+          out += `<line x1="${ox}" y1="${gy}" x2="${ox + max * step}" y2="${gy}" stroke="var(--outline-variant)" stroke-width="1.5" />`;
+        }
+        /* Labels */
+        if (i > 0) {
+          out += `<text x="${gx}" y="${oy + 24}" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="16" fill="var(--on-surface)">${i}</text>`;
+          out += `<text x="${ox - 18}" y="${gy + 6}" text-anchor="end" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="16" fill="var(--on-surface)">${i}</text>`;
+        }
+      }
+
+      /* Axes */
+      out += `<line x1="${ox}" y1="${oy}" x2="${ox + max * step + 22}" y2="${oy}" stroke="var(--outline)" stroke-width="3" marker-end="url(#arrow-black)" />`;
+      out += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy - max * step - 22}" stroke="var(--outline)" stroke-width="3" marker-end="url(#arrow-black)" />`;
+      out += `<text x="${ox - 14}" y="${oy + 22}" text-anchor="end" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="16" fill="var(--on-surface)">O(0,0)</text>`;
+      out += `<text x="${ox + max * step + 26}" y="${oy + 6}" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="18" fill="var(--tertiary)">X</text>`;
+      out += `<text x="${ox - 8}" y="${oy - max * step - 28}" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="18" fill="var(--tertiary)">Y</text>`;
+
+      /* Orange projection dashed lines for active target */
+      if (appState.showOrangeGuide || entry.solved) {
+        const px = ox + q.x * step;
+        const py = oy - q.y * step;
+
+        /* 1. Horizontal trace along X-axis from O to (x, 0) */
+        if (q.x > 0) {
+          out += `<line x1="${ox}" y1="${oy - 3}" x2="${px - 4}" y2="${oy - 3}" stroke="var(--guide-orange)" stroke-width="4" stroke-dasharray="8 6" marker-end="url(#arrow-orange)" />`;
+        }
+        /* 2. Vertical trace from (x, 0) up to (x, y) */
+        if (q.y > 0) {
+          out += `<line x1="${px}" y1="${oy}" x2="${px}" y2="${py + 10}" stroke="var(--guide-orange)" stroke-width="4" stroke-dasharray="8 6" marker-end="url(#arrow-orange)" />`;
+        }
+        /* 3. Horizontal projection from (x, y) to Y-axis (0, y) */
+        if (q.x > 0 && q.y > 0) {
+          out += `<line x1="${px}" y1="${py}" x2="${ox}" y2="${py}" stroke="var(--guide-orange)" stroke-width="2.5" stroke-dasharray="6 6" />`;
+        }
+
+        /* Highlight ticks on axes */
+        out += `<circle cx="${px}" cy="${oy}" r="6" fill="var(--guide-orange)" />`;
+        out += `<circle cx="${ox}" cy="${py}" r="6" fill="var(--guide-orange)" />`;
+      }
+
+      /* Draw all 5 radar targets */
+      for (let i = 0; i < STAGE_1_QUESTIONS.length; i++) {
+        const item = STAGE_1_QUESTIONS[i];
+        const cx = ox + item.x * step;
+        const cy = oy - item.y * step;
+        const isCurrent = i === appState.s1Index;
+        const isDone = !!(appState.progress[item.id] && appState.progress[item.id].solved);
+
+        if (isCurrent) {
+          out += `<circle cx="${cx}" cy="${cy}" r="22" fill="var(--primary-container)" fill-opacity="0.45" stroke="var(--outline)" stroke-width="2.5" stroke-dasharray="4 3" />`;
+        }
+
+        const fillCol = isCurrent ? `var(--tertiary)` : (isDone ? `var(--positive)` : `var(--on-surface-variant)`);
+        const boxW = 104;
+        const boxX = item.x >= 5 ? cx - boxW - 16 : cx + 16;
+        out += `
+          <g style="cursor:pointer;" onclick="selectQuestion(${i})">
+            <circle cx="${cx}" cy="${cy}" r="14" fill="${fillCol}" stroke="var(--outline)" stroke-width="2.5" />
+            <text x="${cx}" y="${cy + 5}" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="14" fill="var(--on-primary)">${item.code}</text>
+            <rect x="${boxX}" y="${cy - 22}" width="${boxW}" height="22" rx="2" fill="var(--surface-canvas)" stroke="var(--outline)" stroke-width="2" />
+            <text x="${boxX + boxW / 2}" y="${cy - 6}" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-weight="700" font-size="12" fill="var(--on-surface)">${item.name}</text>
+          </g>
+        `;
+      }
+
+      svg.innerHTML = out;
+    }
+
+    function renderFullQuadrantSVG(svg) {
+      svg.setAttribute(`viewBox`, `0 0 500 500`);
+      const center = 250;
+      const step = 42;
+      const min = -5;
+      const max = 5;
+
+      let out = `
+        <defs>
+          <marker id="arrow-black-full" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--outline)" />
+          </marker>
+          <marker id="arrow-orange-full" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--guide-orange)" />
+          </marker>
+          <marker id="arrow-blue-full" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--tertiary)" />
+          </marker>
+        </defs>
+      `;
+
+      /* Quadrant subtle corner indicators */
+      out += `<text x="435" y="64" text-anchor="end" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13" fill="var(--on-surface-variant)">第 I 象限 (+,+)</text>`;
+      out += `<text x="65" y="64" text-anchor="start" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13" fill="var(--on-surface-variant)">第 II 象限 (−,+)</text>`;
+      out += `<text x="65" y="446" text-anchor="start" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13" fill="var(--on-surface-variant)">第 III 象限 (−,−)</text>`;
+      out += `<text x="435" y="446" text-anchor="end" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13" fill="var(--on-surface-variant)">第 IV 象限 (+,−)</text>`;
+
+      /* Stage 3 Q3 Ecological Rectangle rendered beneath gridlines */
+      if (appState.activeStage === 3 && STAGE_3_QUESTIONS[appState.s3Index].type === `eco_rect`) {
+        const rectQ = STAGE_3_QUESTIONS[appState.s3Index];
+        const rx = center + rectQ.rect.x1 * step;
+        const ry = center - rectQ.rect.y2 * step;
+        const rw = (rectQ.rect.x2 - rectQ.rect.x1) * step;
+        const rh = (rectQ.rect.y2 - rectQ.rect.y1) * step;
+        out += `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="var(--zone-fill)" fill-opacity="0.7" stroke="var(--tertiary)" stroke-width="3" />`;
+      }
+
+      /* Gridlines */
+      for (let i = min; i <= max; i++) {
+        const gx = center + i * step;
+        const gy = center - i * step;
+        if (i !== 0) {
+          out += `<line x1="${gx}" y1="${center - max * step}" x2="${gx}" y2="${center + max * step}" stroke="var(--outline-variant)" stroke-width="1.25" />`;
+          out += `<line x1="${center + min * step}" y1="${gy}" x2="${center + max * step}" y2="${gy}" stroke="var(--outline-variant)" stroke-width="1.25" />`;
+          out += `<text x="${gx}" y="${center + 18}" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13" fill="var(--on-surface)">${i}</text>`;
+          out += `<text x="${center - 10}" y="${gy + 4}" text-anchor="end" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13" fill="var(--on-surface)">${i}</text>`;
+        }
+      }
+
+      /* X and Y Axes */
+      out += `<line x1="${center + min * step - 12}" y1="${center}" x2="${center + max * step + 18}" y2="${center}" stroke="var(--outline)" stroke-width="2.5" marker-end="url(#arrow-black-full)" />`;
+      out += `<line x1="${center}" y1="${center + max * step + 12}" x2="${center}" y2="${center - max * step - 18}" stroke="var(--outline)" stroke-width="2.5" marker-end="url(#arrow-black-full)" />`;
+      out += `<text x="${center - 10}" y="${center + 18}" text-anchor="end" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="14" fill="var(--on-surface)">O</text>`;
+      out += `<text x="${center + max * step + 24}" y="${center + 5}" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="16" fill="var(--tertiary)">X</text>`;
+      out += `<text x="${center}" y="${center - max * step - 24}" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="16" fill="var(--tertiary)">Y</text>`;
+
+      /* Stage-specific Markers & Orange Projection Guides */
+      if (appState.activeStage === 2) {
+        const q = STAGE_2_QUESTIONS[appState.s2Index];
+        const entry = appState.progress[q.id] || {};
+
+        if (entry.solved) {
+          const tx = center + q.x * step;
+          const ty = center - q.y * step;
+          if (appState.showOrangeGuide) {
+            if (q.x !== 0) {
+              out += `<line x1="${center}" y1="${center}" x2="${tx}" y2="${center}" stroke="var(--guide-orange)" stroke-width="3.5" stroke-dasharray="7 5" />`;
+            }
+            if (q.y !== 0) {
+              out += `<line x1="${tx}" y1="${center}" x2="${tx}" y2="${ty}" stroke="var(--guide-orange)" stroke-width="3.5" stroke-dasharray="7 5" />`;
+            }
+          }
+          out += `<circle cx="${tx}" cy="${ty}" r="14" fill="var(--positive)" stroke="var(--outline)" stroke-width="2.5" />`;
+          out += `<text x="${tx}" y="${ty + 5}" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13" fill="var(--on-primary)">${q.code}</text>`;
+        } else if (entry.lastWrong) {
+          const wx = center + entry.lastWrong.x * step;
+          const wy = center - entry.lastWrong.y * step;
+          out += `<circle cx="${wx}" cy="${wy}" r="12" fill="var(--error-container)" stroke="var(--error)" stroke-width="3" />`;
+          out += `<text x="${wx}" y="${wy + 5}" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="15" fill="var(--error)">×</text>`;
+        }
+      } else if (appState.activeStage === 3) {
+        const q = STAGE_3_QUESTIONS[appState.s3Index];
+        const entry = appState.progress[q.id] || {};
+
+        if (q.type === `heritage_click`) {
+          const rx = center + q.refPoint.x * step;
+          const ry = center - q.refPoint.y * step;
+          out += `<circle cx="${rx}" cy="${ry}" r="10" fill="var(--on-surface)" />`;
+          out += `<rect x="${rx + 12}" y="${ry - 13}" width="92" height="22" fill="var(--surface-canvas)" stroke="var(--outline)" stroke-width="2" />`;
+          out += `<text x="${rx + 58}" y="${ry + 2}" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-weight="700" font-size="12" fill="var(--on-surface)">鐘樓 (2, 3)</text>`;
+
+          if (appState.s3q1Clicked) {
+            const cx = center + appState.s3q1Clicked.x * step;
+            const cy = center - appState.s3q1Clicked.y * step;
+            const okPos = appState.s3q1Clicked.x === q.targetX && appState.s3q1Clicked.y === q.targetY;
+            if (okPos && appState.showOrangeGuide) {
+              out += `<line x1="${center}" y1="${center}" x2="${cx}" y2="${center}" stroke="var(--guide-orange)" stroke-width="3.5" stroke-dasharray="7 5" />`;
+              out += `<line x1="${cx}" y1="${center}" x2="${cx}" y2="${cy}" stroke="var(--guide-orange)" stroke-width="3.5" stroke-dasharray="7 5" />`;
+            }
+            out += `<circle cx="${cx}" cy="${cy}" r="13" fill="${okPos ? `var(--positive)` : `var(--error)`}" stroke="var(--outline)" stroke-width="2.5" />`;
+            out += `<text x="${cx}" y="${cy + 5}" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-weight="700" font-size="12" fill="var(--on-primary)">${okPos ? `館` : `×`}</text>`;
+          }
+        } else if (q.type === `drone_shift`) {
+          const sx = center + q.start.x * step;
+          const sy = center - q.start.y * step;
+          const ex = center + q.end.x * step;
+          const ey = center - q.end.y * step;
+
+          /* Orange X shift + Blue Y shift helper (always shown if solved, or gentle dashed guide if showOrangeGuide) */
+          if (entry.solved || appState.showOrangeGuide) {
+            out += `<line x1="${sx}" y1="${sy}" x2="${ex - 6}" y2="${sy}" stroke="var(--guide-orange)" stroke-width="3.5" stroke-dasharray="7 5" marker-end="url(#arrow-orange-full)" />`;
+            out += `<line x1="${ex}" y1="${sy}" x2="${ex}" y2="${ey + 8}" stroke="var(--tertiary)" stroke-width="3.5" stroke-dasharray="7 5" marker-end="url(#arrow-blue-full)" />`;
+            if (entry.solved) {
+              out += `<rect x="${(sx + ex) / 2 - 34}" y="${sy + 8}" width="68" height="22" fill="var(--primary-container)" stroke="var(--outline)" stroke-width="2" />`;
+              out += `<text x="${(sx + ex) / 2}" y="${sy + 23}" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-weight="700" font-size="12" fill="var(--on-surface)">橫移 +5 格</text>`;
+              out += `<rect x="${ex + 8}" y="${(sy + ey) / 2 - 11}" width="68" height="22" fill="var(--surface-canvas)" stroke="var(--tertiary)" stroke-width="2" />`;
+              out += `<text x="${ex + 42}" y="${(sy + ey) / 2 + 4}" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-weight="700" font-size="12" fill="var(--tertiary)">直爬 +3 格</text>`;
+            }
+          }
+
+          /* Direct flight line */
+          out += `<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="var(--outline)" stroke-width="2" />`;
+          out += `<circle cx="${sx}" cy="${sy}" r="12" fill="var(--secondary)" stroke="var(--outline)" stroke-width="2.5" />`;
+          out += `<text x="${sx}" y="${sy + 4}" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13" fill="var(--on-primary)">A</text>`;
+          out += `<text x="${sx}" y="${sy - 16}" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="12" fill="var(--on-surface)">A(-2,-1)</text>`;
+
+          out += `<circle cx="${ex}" cy="${ey}" r="12" fill="var(--positive)" stroke="var(--outline)" stroke-width="2.5" />`;
+          out += `<text x="${ex}" y="${ey + 4}" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13" fill="var(--on-primary)">B</text>`;
+          out += `<text x="${ex}" y="${ey - 16}" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="12" fill="var(--on-surface)">B(3,2)</text>`;
+        } else if (q.type === `eco_rect`) {
+          const pts = [
+            { l: `P(-3,2)`, x: -3, y: 2, dx: -8, dy: -14 },
+            { l: `Q(4,2)`, x: 4, y: 2, dx: 8, dy: -14 },
+            { l: `R(4,-2)`, x: 4, y: -2, dx: 8, dy: 24 },
+            { l: `S(-3,-2)`, x: -3, y: -2, dx: -8, dy: 24 }
+          ];
+          for (let i = 0; i < pts.length; i++) {
+            const p = pts[i];
+            const px = center + p.x * step;
+            const py = center - p.y * step;
+            out += `<circle cx="${px}" cy="${py}" r="7" fill="var(--tertiary)" stroke="var(--outline)" stroke-width="2" />`;
+            out += `<text x="${px + p.dx}" y="${py + p.dy}" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="12" fill="var(--on-surface)">${p.l}</text>`;
+          }
+          if (entry.solved) {
+            const x1 = center + q.rect.x1 * step;
+            const x2 = center + q.rect.x2 * step;
+            const yTop = center - q.rect.y2 * step;
+            const yBot = center - q.rect.y1 * step;
+            out += `<rect x="${(x1 + x2) / 2 - 42}" y="${yTop - 26}" width="84" height="22" fill="var(--primary-container)" stroke="var(--outline)" stroke-width="2" />`;
+            out += `<text x="${(x1 + x2) / 2}" y="${yTop - 11}" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-weight="700" font-size="12" fill="var(--on-surface)">長 = 7 單位</text>`;
+            out += `<rect x="${x2 + 10}" y="${(yTop + yBot) / 2 - 11}" width="84" height="22" fill="var(--surface-canvas)" stroke="var(--tertiary)" stroke-width="2" />`;
+            out += `<text x="${x2 + 52}" y="${(yTop + yBot) / 2 + 4}" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-weight="700" font-size="12" fill="var(--tertiary)">闊 = 4 單位</text>`;
+          }
+        }
+      }
+
+      /* Interactive Touch/Click Hit Grid for Stage 2 and Stage 3 Q1 */
+      const clickableMode = (appState.activeStage === 2) ||
+        (appState.activeStage === 3 && STAGE_3_QUESTIONS[appState.s3Index].type === `heritage_click`);
+
+      if (clickableMode) {
+        for (let ix = min; ix <= max; ix++) {
+          for (let iy = min; iy <= max; iy++) {
+            const hx = center + ix * step;
+            const hy = center - iy * step;
+            out += `<circle class="grid-hit" cx="${hx}" cy="${hy}" r="19" tabindex="0" role="button" aria-label="點擊坐標 (${ix}, ${iy})" onclick="handleGridPointClick(${ix}, ${iy})" onkeydown="handleGridKeydown(event, ${ix}, ${iy})" />`;
+          }
+        }
+      }
+
+      svg.innerHTML = out;
+    }
+
+    /* ==========================================================
+       Smart Diagnostic Engine
+       ========================================================== */
+    function setFeedback(kind, title, detail) {
+      const box = document.getElementById(`feedback-box`);
+      const tEl = document.getElementById(`feedback-title`);
+      const dEl = document.getElementById(`feedback-detail`);
+      if (!box || !tEl || !dEl) return;
+
+      box.classList.remove(`ok`, `err`, `warn`);
+      if (kind === `ok` || kind === `err` || kind === `warn`) {
+        box.classList.add(kind);
+      }
+      tEl.textContent = title;
+      dEl.textContent = detail;
+    }
+
+    function diagnoseCoordinateMismatch(cx, cy, tx, ty) {
+      if (cx === ty && cy === tx && tx !== ty) {
+        return {
+          title: `診斷回饋：順序點反了！`,
+          detail: `你誤把 (${tx}, ${ty}) 當成 (${ty}, ${tx})，所以點到了 (${cx}, ${cy})。請記住特工口訣：先沿水平 X 軸移動 ${tx} 格，再沿垂直 Y 軸移動 ${ty} 格！`
+        };
+      }
+      if (cx === -tx && tx !== 0 && cy === ty) {
+        const rightDir = tx > 0 ? `右方（正數）` : `左方（負數）`;
+        const wrongDir = tx > 0 ? `左方` : `右方`;
+        return {
+          title: `診斷回饋：X 軸向左向右正負號搞反！`,
+          detail: `你的 Y 坐標 (${ty}) 正確，但 X 軸方向相反了！原點右方為正數 (+)，左方為負數 (−)。x = ${tx} 應該向${rightDir}移動，而不是向${wrongDir}移動。`
+        };
+      }
+      if (cy === -ty && ty !== 0 && cx === tx) {
+        const rightDir = ty > 0 ? `上方（正數）` : `下方（負數）`;
+        const wrongDir = ty > 0 ? `下方` : `上方`;
+        return {
+          title: `診斷回饋：Y 軸向上向下正負號搞反！`,
+          detail: `你的 X 坐標 (${tx}) 正確，但 Y 軸方向相反了！原點上方為正數 (+)，下方為負數 (−)。y = ${ty} 應該向${rightDir}移動，而不是向${wrongDir}移動。`
+        };
+      }
+      if (cx === -tx && cy === -ty && (tx !== 0 || ty !== 0)) {
+        return {
+          title: `診斷回饋：X 軸與 Y 軸正負方向均相反！`,
+          detail: `你點了 (${cx}, ${cy})，正負方向剛好完全相反。口訣提醒：右正左負、上正下負，請重新從原點 O(0, 0) 出發！`
+        };
+      }
+      return {
+        title: `位置偏差：你點擊了 (${cx}, ${cy})`,
+        detail: `目標坐標是 (${tx}, ${ty})。先由原點 O(0,0) 橫看 X 軸到 ${tx}，再直看 Y 軸到 ${ty}，再點擊一次試試！`
+      };
+    }
+
+    function recordSuccess(qId, basePoints) {
+      const prev = appState.progress[qId] || { solved: false, attempts: 0, earned: 0, lastWrong: null };
+      if (!prev.solved) {
+        const earned = prev.attempts === 0 ? basePoints : Math.max(8, basePoints - 2);
+        appState.progress[qId] = {
+          solved: true,
+          attempts: prev.attempts + 1,
+          earned: earned,
+          lastWrong: null
+        };
+        return earned;
+      }
+      return 0;
+    }
+
+    function recordAttempt(qId, wrongPoint) {
+      const prev = appState.progress[qId] || { solved: false, attempts: 0, earned: 0, lastWrong: null };
+      appState.progress[qId] = {
+        solved: prev.solved,
+        attempts: prev.attempts + 1,
+        earned: prev.earned,
+        lastWrong: wrongPoint || null
+      };
+    }
+
+    /* ==========================================================
+       Hoisted Interactive Event Handlers
+       ========================================================== */
+    function switchStage(stageNum) {
+      if (stageNum === 3 && !isHiddenUnlocked()) {
+        const missing = UNLOCK_THRESHOLD - getTotalScore();
+        setFeedback(`warn`, `隱藏關卡尚未解鎖`, `目前累積分數不足 80 分（還差 ${missing} 分），請先在任務一及任務二累積足夠分數！`);
+        return;
+      }
+      appState.activeStage = stageNum;
+      renderAll();
+      if (stageNum === 1) {
+        setFeedback(`neutral`, `進入任務一：看圖讀坐標`, `觀察雷達目標與橘色投影輔助虛線，輸入 (x, y) 坐標。`);
+      } else if (stageNum === 2) {
+        setFeedback(`neutral`, `進入任務二：全象限平面標點`, `留意正負數方向：右正左負、上正下負，直接點擊網格交會點！`);
+      } else {
+        setFeedback(`ok`, `金色隱藏關卡已啟動！`, `運用正負數與跨學科 STEAM 思維，完成香港古蹟、無人機航線與生態工程救援任務！`);
+      }
+      saveAppState();
+    }
+
+    function toggleOrangeGuide() {
+      appState.showOrangeGuide = !appState.showOrangeGuide;
+      renderAll();
+      saveAppState();
+    }
+
+    function selectQuestion(index) {
+      if (appState.activeStage === 1) {
+        appState.s1Index = index;
+      } else if (appState.activeStage === 2) {
+        appState.s2Index = index;
+      } else {
+        appState.s3Index = index;
+      }
+      renderAll();
+      setFeedback(`neutral`, `已切換題目`, `請根據題目提示進行讀圖或點擊定位。`);
+      saveAppState();
+    }
+
+    function goNextQuestion() {
+      if (appState.activeStage === 1) {
+        if (appState.s1Index < STAGE_1_QUESTIONS.length - 1) {
+          appState.s1Index++;
+          renderAll();
+          setFeedback(`neutral`, `任務一第 ${appState.s1Index + 1} 題`, `先橫走 X 軸，再直爬 Y 軸，讀出目標坐標。`);
+        } else {
+          switchStage(2);
+          return;
+        }
+      } else if (appState.activeStage === 2) {
+        if (appState.s2Index < STAGE_2_QUESTIONS.length - 1) {
+          appState.s2Index++;
+          renderAll();
+          setFeedback(`neutral`, `任務二第 ${appState.s2Index + 1} 題`, `點擊全象限網格交會點標出目標位置。`);
+        } else if (isHiddenUnlocked()) {
+          switchStage(3);
+          return;
+        } else {
+          setFeedback(`warn`, `任務二已到最後一題`, `請檢查未完成的題目以累積滿 80 分解鎖隱藏關卡！`);
+        }
+      } else {
+        if (appState.s3Index < STAGE_3_QUESTIONS.length - 1) {
+          appState.s3Index++;
+          renderAll();
+          setFeedback(`neutral`, `STEAM 關卡 ${appState.s3Index + 1}`, `小心跨正負軸的數值變化！`);
+        } else {
+          setFeedback(`ok`, `特工全系列任務達陣！`, `恭喜你完成所有 STEAM 智慧城市救援任務，總分為 ${getTotalScore()} 分！`);
+        }
+      }
+      saveAppState();
+    }
+
+    function stepInput(inputId, delta, minVal, maxVal) {
+      const el = document.getElementById(inputId);
+      if (!el) return;
+      const cur = el.value === `` ? 0 : parseInt(el.value, 10);
+      const next = Math.max(minVal, Math.min(maxVal, (Number.isNaN(cur) ? 0 : cur) + delta));
+      el.value = String(next);
+    }
+
+    function selectQuadrant(qCode) {
+      appState.s3q1Quadrant = qCode;
+      renderStagePanel();
+      saveAppState();
+    }
+
+    function handleGridKeydown(ev, ix, iy) {
+      if (ev.key === `Enter` || ev.key === ` `) {
+        ev.preventDefault();
+        handleGridPointClick(ix, iy);
+      }
+    }
+
+    function handleGridPointClick(ix, iy) {
+      if (appState.activeStage === 2) {
+        const q = STAGE_2_QUESTIONS[appState.s2Index];
+        const wasUnlocked = isHiddenUnlocked();
+
+        if (ix === q.x && iy === q.y) {
+          const gained = recordSuccess(q.id, q.points);
+          renderAll();
+          const nowUnlocked = isHiddenUnlocked();
+          const unlockMsg = (!wasUnlocked && nowUnlocked)
+            ? ` 太棒了！你已累積滿 80 分，成功解鎖金色 STEAM 隱藏關卡按鈕！`
+            : ``;
+          setFeedback(
+            `ok`,
+            `精準標點！${q.name} (${q.x}, ${q.y}) 完成${gained > 0 ? ` (+${gained} 分)` : ``}`,
+            `先沿 X 軸到 ${q.x}，再沿 Y 軸到 ${q.y}，完全符合特工口訣！${unlockMsg}`
+          );
+          saveAppState();
+        } else {
+          recordAttempt(q.id, { x: ix, y: iy });
+          const diag = diagnoseCoordinateMismatch(ix, iy, q.x, q.y);
+          renderAll();
+          setFeedback(`err`, diag.title, diag.detail);
+          saveAppState();
+        }
+      } else if (appState.activeStage === 3) {
+        const q = STAGE_3_QUESTIONS[appState.s3Index];
+        if (q.type !== `heritage_click`) return;
+
+        appState.s3q1Clicked = { x: ix, y: iy };
+        renderAll();
+
+        if (ix === q.targetX && iy === q.targetY) {
+          setFeedback(`ok`, `大館座標 (-3, 2) 標記正確！`, `請在右側同時點選「第 II 象限」，再按「核對古蹟定位與象限」提交！`);
+        } else {
+          const diag = diagnoseCoordinateMismatch(ix, iy, q.targetX, q.targetY);
+          setFeedback(`err`, diag.title, diag.detail);
+        }
+        saveAppState();
+      }
+    }
+
+    function submitCurrentAnswer() {
+      const wasUnlocked = isHiddenUnlocked();
+
+      if (appState.activeStage === 1) {
+        const q = STAGE_1_QUESTIONS[appState.s1Index];
+        const xEl = document.getElementById(`input-s1-x`);
+        const yEl = document.getElementById(`input-s1-y`);
+        if (!xEl || !yEl) return;
+
+        if (xEl.value === `` || yEl.value === ``) {
+          setFeedback(`warn`, `請輸入完整的 X 與 Y 坐標`, `兩個輸入框都需要填寫 0 至 6 的整數。`);
+          return;
+        }
+        const vx = parseInt(xEl.value, 10);
+        const vy = parseInt(yEl.value, 10);
+
+        if (vx === q.x && vy === q.y) {
+          const gained = recordSuccess(q.id, q.points);
+          renderAll();
+          const nowUnlocked = isHiddenUnlocked();
+          const unlockMsg = (!wasUnlocked && nowUnlocked)
+            ? ` 你已累積滿 80 分，金色 STEAM 隱藏關卡按鈕正式解鎖！`
+            : ``;
+          setFeedback(
+            `ok`,
+            `答對了！${q.name} 坐標是 (${q.x}, ${q.y})${gained > 0 ? ` (+${gained} 分)` : ``}`,
+            `看看橘色投影輔助虛線：先橫走 X 軸 ${q.x} 格，再直爬 Y 軸 ${q.y} 格！${unlockMsg}`
+          );
+          saveAppState();
+        } else if (vx === q.y && vy === q.x && q.x !== q.y) {
+          recordAttempt(q.id, null);
+          setFeedback(`err`, `診斷回饋：X 與 Y 順序填反了！`, `你填寫了 (${vx}, ${vy})，但記得口訣是「先橫走 X 軸、再直爬 Y 軸」；看看橘色虛線指向 X 軸的數字是 ${q.x}，Y 軸是 ${q.y}！`);
+          saveAppState();
+        } else {
+          recordAttempt(q.id, null);
+          setFeedback(`err`, `坐標未完全正確 (${vx}, ${vy})`, `請重新觀察橘色投影輔助虛線：水平先對準 X 軸哪一個刻度？垂直再對準 Y 軸哪一個刻度？`);
+          saveAppState();
+        }
+      } else if (appState.activeStage === 3) {
+        const q = STAGE_3_QUESTIONS[appState.s3Index];
+
+        if (q.type === `heritage_click`) {
+          if (!appState.s3q1Clicked) {
+            setFeedback(`warn`, `請先在地圖上點擊大館位置`, `請在左側坐標平面點擊 (-3, 2) 的交會點。`);
+            return;
+          }
+          if (appState.s3q1Clicked.x !== q.targetX || appState.s3q1Clicked.y !== q.targetY) {
+            const diag = diagnoseCoordinateMismatch(appState.s3q1Clicked.x, appState.s3q1Clicked.y, q.targetX, q.targetY);
+            recordAttempt(q.id, null);
+            setFeedback(`err`, diag.title, diag.detail);
+            saveAppState();
+            return;
+          }
+          if (!appState.s3q1Quadrant) {
+            setFeedback(`warn`, `請選擇所屬象限`, `大館位置已標對！請接著點選 (-3, 2) 所屬的象限按鈕。`);
+            return;
+          }
+          if (appState.s3q1Quadrant !== q.quadrant) {
+            recordAttempt(q.id, null);
+            setFeedback(`err`, `象限判斷未正確`, `X = -3（負數、原點左邊），Y = +2（正數、原點上邊），左上方屬於第 II 象限！`);
+            saveAppState();
+            return;
+          }
+          const gained = recordSuccess(q.id, q.points);
+          renderAll();
+          setFeedback(`ok`, `古蹟保育任務完成！${gained > 0 ? ` (+${gained} 分)` : ``}`, `中環大館位於 (-3, 2) 的第 II 象限，與第 I 象限的尖沙咀鐘樓 (2, 3) 遙遙相對，保育座標已登錄！`);
+          saveAppState();
+        } else if (q.type === `drone_shift`) {
+          const dxEl = document.getElementById(`input-s3-dx`);
+          const dyEl = document.getElementById(`input-s3-dy`);
+          if (!dxEl || !dyEl) return;
+          if (dxEl.value === `` || dyEl.value === ``) {
+            setFeedback(`warn`, `請填寫橫向與縱向位移格數`, `計算由 A(-2, -1) 到 B(3, 2) 的向右與向上格數。`);
+            return;
+          }
+          const vdx = parseInt(dxEl.value, 10);
+          const vdy = parseInt(dyEl.value, 10);
+
+          if (vdx === q.dx && vdy === q.dy) {
+            const gained = recordSuccess(q.id, q.points);
+            renderAll();
+            setFeedback(`ok`, `航線推算精準！${gained > 0 ? ` (+${gained} 分)` : ``}`, `橫向向右：由 -2 經過 0 到 +3，共 3 − (−2) = 5 格；縱向向上：由 -1 經過 0 到 +2，共 2 − (−1) = 3 格！`);
+            saveAppState();
+          } else {
+            recordAttempt(q.id, null);
+            let msg = `請分段數一數跨越原點的格數：`;
+            if (vdx !== q.dx) {
+              msg += ` X 軸從 -2 到 0 是 2 格，再從 0 到 +3 是 3 格，合共 2 + 3 = 5 格！`;
+            }
+            if (vdy !== q.dy) {
+              msg += ` Y 軸從 -1 到 0 是 1 格，再從 0 到 +2 是 2 格，合共 1 + 2 = 3 格！`;
+            }
+            setFeedback(`err`, `航線位移格數有誤`, msg);
+            saveAppState();
+          }
+        } else if (q.type === `eco_rect`) {
+          const wEl = document.getElementById(`input-s3-w`);
+          const hEl = document.getElementById(`input-s3-h`);
+          const aEl = document.getElementById(`input-s3-a`);
+          if (!wEl || !hEl || !aEl) return;
+          if (wEl.value === `` || hEl.value === `` || aEl.value === ``) {
+            setFeedback(`warn`, `請填寫長度、闊度與面積`, `三個工程測量數據都需要輸入。`);
+            return;
+          }
+          const vw = parseInt(wEl.value, 10);
+          const vh = parseInt(hEl.value, 10);
+          const va = parseInt(aEl.value, 10);
+
+          if (vw === q.width && vh === q.height && va === q.area) {
+            const gained = recordSuccess(q.id, q.points);
+            renderAll();
+            setFeedback(`ok`, `生態工程測量達標！${gained > 0 ? ` (+${gained} 分)` : ``}`, `東西長度 = |-3| + |4| = 7 單位，南北闊度 = |-2| + |2| = 4 單位，保護區總面積 = 7 × 4 = 28 平方單位！`);
+            saveAppState();
+          } else {
+            recordAttempt(q.id, null);
+            const hints = [];
+            if (vw !== q.width) hints.push(`東西長度由 x = -3 跨越原點至 x = 4，應是 3 + 4 = 7 單位`);
+            if (vh !== q.height) hints.push(`南北闊度由 y = -2 跨越原點至 y = 2，應是 2 + 2 = 4 單位`);
+            if (va !== q.area) hints.push(`長方形面積等於「長度 × 闊度」`);
+            setFeedback(`err`, `測量數值需要修正`, hints.join(`；`) + `。`);
+            saveAppState();
+          }
+        }
+      }
+    }
+
+    function handleResetProgress(btn) {
+      if (!btn) return;
+      if (btn.dataset.armed !== `true`) {
+        btn.dataset.armed = `true`;
+        btn.textContent = `再次點擊確認重設所有分數`;
+        setFeedback(`warn`, `確認重設？`, `再按一次「再次點擊確認重設所有分數」將清空全部得分與關卡紀錄。`);
+        return;
+      }
+      btn.dataset.armed = `false`;
+      btn.textContent = `重設挑戰進度`;
+      appState.activeStage = 1;
+      appState.s1Index = 0;
+      appState.s2Index = 0;
+      appState.s3Index = 0;
+      appState.progress = {};
+      appState.s3q1Clicked = null;
+      appState.s3q1Quadrant = ``;
+      renderAll();
+      setFeedback(`neutral`, `進度已重設`, `特工重新出發！請由任務一開始挑戰。`);
+      saveAppState();
+    }
+
+    /* ==========================================================
+       Initialization
+       ========================================================== */
+    async function initApp() {
+      await loadAppState();
+      renderAll();
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    document.addEventListener(`DOMContentLoaded`, initApp);
+  </script>
+</body>
+</html>
